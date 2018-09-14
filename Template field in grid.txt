@@ -1,0 +1,1 @@
+            { field: "READYNESS", title: "Readyness", width: "70px", editor: DD_Readyness , template: "#=READYNESS=READYNESS ? READY_DESC:READY_DESC#" },

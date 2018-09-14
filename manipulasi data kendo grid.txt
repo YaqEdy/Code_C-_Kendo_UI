@@ -1,0 +1,11 @@
+var grid = $('#kgridA').data('kendoGrid');
+    var dataItem = grid.dataSource.get(id);
+
+
+    dataItem.name = "xxx";
+or  
+    dataItem.set("name","xxx");
+or  
+    dataItem[name] = "xxx";
+
+    $('#kgridA').data('kendoGrid').refresh(); XXX

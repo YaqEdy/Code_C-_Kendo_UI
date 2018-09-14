@@ -1,0 +1,105 @@
+=========== Controller ==========
+
+        [HttpPost]
+        public JsonResult getTemplate()
+        {
+            try
+            {
+                DtClass_CoredDataContext P_CTX_DB = new DtClass_CoredDataContext();
+
+                var iTbl = P_CTX_DB.TBL_M_TEMPLATEs.OrderBy(f => f.TEMPLATE_NAME);
+                return Json(new { Total = iTbl.Count(), Data = iTbl });
+
+            }
+            catch (Exception e)
+            {
+                return this.Json(new { remarks = e.ToString(), error = e.ToString() }, JsonRequestBehavior.AllowGet);
+            }
+
+        }
+
+------------OR---------------
+
+        [HttpPost]
+        public JsonResult ReadDD_Distrik()
+        {
+            try
+            {
+                var iTbl = p_ctx_db.VW_DWH_DISTRIKs;
+                return Json(iTbl);
+            }
+            catch (Exception e)
+            {
+                return this.Json(new { remarks = e.ToString(), error = e.ToString() }, JsonRequestBehavior.AllowGet);
+            }
+        }
+
+=============index=============
+        <div class="col-md-2 demo-section k-content">
+            @*<h4 class="title">Type Upload Data</h4>*@
+            <input id="dropdownlist" name="dropdownlist" style="width: 100%;" />
+        </div>
+
+
+
+
+======== JS ============
+var dsTemplateDD = new kendo.data.DataSource({
+    type: "json",
+    transport: {
+        read: {
+            url: $("#urlPath").val() + "/UploadData/getTemplate",
+            contentType: "application/json",
+            type: "POST",
+            cache: false
+        }
+    },
+    schema: {
+        data: "Data",
+        total: "Total"
+    }
+});
+$("#dropdownlist").kendoDropDownList({
+    dataTextField: "TEMPLATE_NAME",
+    dataValueField: "ID_TEMPLATE",
+    dataSource: dsTemplateDD,
+    filter: "contains",
+    optionLabel: "Pilih",
+    //change:
+    select:
+        function (e) {
+            var dataItem = this.dataItem(e.item.index());
+            onSelectDD(dataItem.ID_TEMPLATE);
+        }
+});
+
+
+
+
+=======MVVM=======
+{field:'PID_TEMPLATE', title:'Type Data', width:100, editor:dropdownlist},
+
+==========JS=========
+function DD_Distrik(container, options) {
+    $('<input required data-bind="value:' + options.field + '"/>')
+     .appendTo(container)
+        .kendoDropDownList({
+            optionLabel: "Pilih",
+            dataTextField: "DSTRCT_NAME",
+            dataValueField: "DSTRCT_CODE",
+            dataSource: {
+                type: "json",
+                transport: {
+                    read: {
+                        url: $("#urlPath").val() + "/ConvertionFuel/ReadDD_Distrik",
+                        contentType: "application/json",
+                        type: "POST",
+                        cache: false
+                    }
+                },
+               
+            },
+            filter: "contains",
+           
+        });
+}

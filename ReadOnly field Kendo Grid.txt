@@ -1,0 +1,260 @@
+ var len = $("#gridName").find("tbody tr").length;
+    for(var i=0;i<=len ; i++)
+    {
+        var model = $("#gridName").data("kendoGrid").dataSource.at(i);
+        if (model) {//field names
+            model.fields["DueDateStr"].editable = false;
+            model.fields["TotalAmount"].editable = false;
+            model.fields["IsPercentage"].editable = false;
+        }
+
+    }
+
+
+
+
+========================================================== 
+
+
+
+   columns: [
+                { command: ["edit"], title: "Action", width: 65 },
+                { field: 'DSTRCT_CODE', title: 'DISTRICT', width: 100, editor: DD_DSTRCT },
+                //{ field: 'DSTRCT_NAME', title: 'DISTRICT NAME', width: 200, editor: Temp_District_name_txt },
+                { field: 'DSTRCT_GROUP', title: 'GROUP CONSOLE', width: 200, editor: DD_DSTRCT_GROUP },
+                {
+                    field: "EVA",
+                    title: "GROUP EVA",
+                    width: "130px",
+                    editor: DD_EVA,
+                    template: $("#statusTemplate").html()
+                },
+                 {
+                     field: "STATUS_CONSOL",
+                     title: "STATUS CONSOLE",
+                     width: "130px",
+                     editor: Editor_Status,
+                     template: $("#statusTemplate").html()
+                 },
+                 {
+                     field: "STATUS_EVA",
+                     title: "STATUS EVA",
+                     width: "130px",
+                     editor: Editor_Status,
+                     template: $("#statusTemplate").html()
+                 },
+                 {
+                     field: "NRP_CONSOL",
+                     title: "NRP CONSOL",
+                     width: "100px",
+                     editor: Editor_NRP
+                 },
+        ],
+        dataBinding: function () {
+            window.RecNumerEq = (this.dataSource.page() - 1) * this.dataSource.pageSize();
+        },
+    });
+}
+
+
+
+
+
+function DD_DSTRCT_NM(container, options) {
+    //console.log(options.model.PID_STOCK_CLASS_SETTING);
+    if (options.model.PID_DISTRICT == "" || options.model.PID_DISTRICT == null) {
+        $('<input required data-bind="value :' + options.field + '" />').appendTo(container).kendoDropDownList({
+            dataTextField: "DSTRCT_NAME",
+            dataValueField: "DSTRCT_NAME",
+            optionLabel: "[Pilih]",
+            dataSource: {
+                type: "json",
+                transport: {
+                    read: {
+                        url: $("#urlPath").val() + "/MasterDistrict/DD_DSTRCT_NM",
+                        contentType: "application/json",
+                        type: "POST",
+                        cache: false
+                    }
+                },
+                schema: {
+                    data: "Data",
+                    total: "Total"
+                }
+            }
+
+        });
+    }
+    else {
+        $('<input required data-bind="value :' + options.field + '" disabled/>').appendTo(container).kendoDropDownList({
+            dataTextField: "DSTRCT_NAME",
+            dataValueField: "DSTRCT_NAME",
+            optionLabel: "[Pilih]",
+            dataSource: {
+                type: "json",
+                transport: {
+                    read: {
+                        url: $("#urlPath").val() + "/MasterDistrict/DD_DSTRCT_NM",
+                        contentType: "application/json",
+                        type: "POST",
+                        cache: false
+                    }
+                },
+                schema: {
+                    data: "Data",
+                    total: "Total"
+                }
+            }
+
+        });
+    }
+
+}
+
+function DD_DSTRCT(container, options) {
+    //console.log(options.model.PID_STOCK_CLASS_SETTING);
+    if (options.model.PID_DISTRICT == "" || options.model.PID_DISTRICT == null) {
+        $('<input required data-bind="value :' + options.field + '" />').appendTo(container).kendoDropDownList({
+            dataTextField: "DSTRCT_CODE",
+            dataValueField: "PID_DSTRCT_CODE",
+            optionLabel: "[Pilih]",
+            //change: onChange,
+            dataSource: {
+                type: "json",
+                transport: {
+                    read: {
+                        url: $("#urlPath").val() + "/MasterDistrict/DD_DSTRCT",
+                        contentType: "application/json",
+                        type: "POST",
+                        cache: false
+                    }
+                },
+                schema: {
+                    data: "Data",
+                    total: "Total"
+                }
+            },
+            select: function (e) {
+                var dataItem = this.dataItem(e.item.index());
+
+                $("#txt_district").val(dataItem.DSTRCT_NAME);
+                $("#txt_district").change();
+                console.log(dataItem.DSTRCT_NAME);
+            }
+
+        });
+    }
+    else {
+        $('<input required data-bind="value :' + options.field + '" disabled/>').appendTo(container).kendoDropDownList({
+            dataTextField: "DSTRCT_CODE",
+            dataValueField: "PID_DSTRCT_CODE",
+            optionLabel: "[Pilih]",
+            dataSource: {
+                type: "json",
+                transport: {
+                    read: {
+                        url: $("#urlPath").val() + "/MasterDistrict/DD_DSTRCT",
+                        contentType: "application/json",
+                        type: "POST",
+                        cache: false
+                    }
+                },
+                schema: {
+                    data: "Data",
+                    total: "Total"
+                }
+            },
+
+            select: function (e) {
+                var dataItem = this.dataItem(e.item.index());
+
+                $("#txt_district").val(dataItem.DSTRCT_NAME);
+                $("#txt_district").change();
+                console.log(dataItem.DSTRCT_NAME);
+            }
+
+        });
+    }
+
+}
+
+function DD_DSTRCT_GROUP(container, options) {
+    $('<input required id="DSTRCT_GROUP" data-bind="value:DSTRCT_GROUP" />').appendTo(container).kendoDropDownList({
+        autoBind: true,
+        dataTextField: "DSTRCT_CODE",
+        dataValueField: "DSTRCT_CODE",
+        optionLabel: "[Pilih]",
+        dataSource: {
+            type: "json",
+            transport: {
+                read: {
+                    url: $("#urlPath").val() + "/MasterDistrict/DD_DSTRCT_GROUP",
+                    contentType: "application/json",
+                    type: "POST",
+                    cache: false
+                }
+            },
+            schema: {
+                data: "Data",
+                total: "Total"
+            }
+        },
+        change: function (e) {
+            options.model.DSTRCT_GROUP = $("#DSTRCT_GROUP").data("kendoDropDownList").value();
+        }
+
+    }).data("kendoDropDownList");
+}
+
+function DD_EVA(container, options) {
+    $('<input required id="EVA" data-bind="value:EVA" />').appendTo(container).kendoDropDownList({
+        autoBind: true,
+        dataTextField: "DSTRCT_CODE",
+        dataValueField: "DSTRCT_CODE",
+        optionLabel: "[Pilih]",
+        dataSource: {
+            type: "json",
+            transport: {
+                read: {
+                    url: $("#urlPath").val() + "/MasterDistrict/DD_DSTRCT_GROUP",
+                    contentType: "application/json",
+                    type: "POST",
+                    cache: false
+                }
+            },
+            schema: {
+                data: "Data",
+                total: "Total"
+            }
+        },
+        change: function (e) {
+            options.model.EVA = $("#EVA").data("kendoDropDownList").value();
+        }
+
+    }).data("kendoDropDownList");
+}
+
+function Editor_Status_EVA(container, options) {
+        $('<input name="EVA"  type="checkbox" value= true data-bind="checked: EVA"/> Yes &nbsp&nbsp&nbsp&nbsp &nbsp&nbsp&nbsp&nbsp').appendTo(container);
+    }
+
+function Editor_Status(container, options) {
+    $('<input name="' + options.field + '"  type="checkbox" value=true data-bind="checked:' + options.field + '"/> Yes &nbsp&nbsp&nbsp&nbsp &nbsp&nbsp&nbsp&nbsp').appendTo(container);
+    }
+
+function Editor_NRP(container, options) {
+    $('<input required name="NRP_CONSOL" data-bind="value:' + options.field + '" class="k-input k-textbox" readonly/>')
+                    .appendTo(container);
+
+    $('<input type="button" id="btn_lookupKaryawan" value="LOAD" class="k-button" />')
+        .appendTo(container)
+        .click(function () {
+            popupEmployee.center().open();
+        });;
+}
+
+function Temp_District_name_txt(container, options) {
+    //console.log(container);
+    //console.log(options.model);
+    $('<input readonly type="text" size="45" height="48"  id="txt_district" data-bind="value: DSTRCT_NAME"/>').appendTo(container);
+}

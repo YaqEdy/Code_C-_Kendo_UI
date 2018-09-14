@@ -1,0 +1,9 @@
+function Tahun(container, options) {
+    $('<input data-format="yyyy" required data-bind="value:' + options.field + '"/>')
+        .appendTo(container)
+        .kendoDatePicker({
+            start: "decade",
+            depth: "decade",
+            format: "yyyy",
+        });
+}

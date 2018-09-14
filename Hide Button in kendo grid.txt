@@ -1,0 +1,24 @@
+        dataBound: function (e) {
+            var grid = $('#gridCoeTraining');
+            var ds = e.sender._data;
+            for (var i = 0; i < ds.length; i++) {
+                var currentUid = ds[i].uid;
+                var currentRow = grid.find("tr[data-uid='" + currentUid + "']");
+
+                if (ds[i].IS_ACTUAL) {
+                    $(currentRow).find('.k-grid-revisi-coe').hide();
+                    $(currentRow).find('.k-grid-delete').hide();
+                    //$(currentRow).find('.k-grid-actual-coe').hide();
+                } else {
+                    $(currentRow).find('.k-grid-revisi-coe').show();
+                    $(currentRow).find('.k-grid-delete').show();
+                    //$(currentRow).find('.k-grid-actual-coee').show();
+                }
+            }
+        }
+
+
+
+function Temp_District_name_txt(container, options) {
+    $('<input readonly type="text" size="45" height="48"  id="txt_district" data-bind="value: DSTRCT_NAME"/>').appendTo(container);
+}

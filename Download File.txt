@@ -1,0 +1,4 @@
+function DTemplate() {
+        var path_download = $("#urlPath").val() + "/csv/cored/template/Acs_template.csv";
+        window.open(path_download, '_blank');
+}

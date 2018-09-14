@@ -1,0 +1,86 @@
+=================== view ===============
+<div class="row">
+    <div class="col-md-1"><label>Creation Date PO From</label></div>
+    <div class="col-md-2"><input id="date_po_from" style="width: 100%;" /></div>
+</div>
+
+<div class="row">
+    <div class="col-md-1"><label>Creation Date PO To</label></div>
+    <div class="col-md-2"><input id="date_po_to" style="width: 100%;" /></div>
+</div>
+
+<div class="row">
+    <div class="col-md-1">
+        <button id="btnView" class="k-button" type="button">View</button>
+    </div>
+</div>
+
+
+=================== JS ===============
+ var today = new Date();
+    var day = today.getDate() - 15;
+    var month = today.getMonth();
+    var year = today.getFullYear();
+
+    function startChange() {
+        var endDate = end.value(),
+        startDate = start.value();
+
+        if (endDate) {
+            endDate = new Date(endDate);
+            endDate.setDate(endDate.getDate());
+            start.max(endDate);
+        } else if (startDate) {
+            end.min(new Date(startDate));
+        } else {
+            endDate = new Date();
+            start.max(endDate);
+            end.min(endDate);
+        }
+    }
+
+    function endChange() {
+        var startDate = start.value(),
+        endDate = end.value();
+
+        if (startDate) {
+            startDate = new Date(startDate);
+            startDate.setDate(startDate.getDate());
+            end.min(startDate);
+        } else if (endDate) {
+            start.max(new Date(endDate));
+        } else {
+            endDate = new Date();
+            start.max(endDate);
+            end.min(endDate);
+        }
+
+    }
+
+    var start = $("#date_po_to").kendoDatePicker({
+        change: endChange,
+        min: new Date(year, month, day),
+        max: new Date(today.setDate(today.getDate())),
+        format: "yyyy-MM-dd"
+    }).data("kendoDatePicker");
+
+
+
+    var end = $("#date_po_from").kendoDatePicker({
+        change: startChange,
+        min: new Date(year, month, day),
+        max: new Date(today.setDate(today.getDate())),
+        format: "yyyy-MM-dd"
+    }).data("kendoDatePicker");
+
+    $("#btnView").click(function (e) {
+        var iframe = document.getElementById("iframeReport");
+        iframe.src = $("#urlPath").val() + "/Report/ReportPOErrorSuccessPOInventory.aspx?sDATE_PO_FROM=" + $("#date_po_from").val() +
+            "&sDATE_PO_TO=" + $("#date_po_to").val() +
+            "&sPURCH_OFFICER=" + $("#dd_purch").val() +
+            "&sSUPPLIER_CODE=" + $("#dd_supplier").val() +
+            "&sDISTRIK=" + $("#dd_distrik").val() +
+            "&sSTOCK=" + $("#dd_class").val();
+
+    });
+

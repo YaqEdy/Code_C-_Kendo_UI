@@ -1,0 +1,110 @@
+    //View Jurnal TM
+    var wndJurnalTM = $("#wndJurnalTM").kendoWindow({
+        title: "Jurnal TM",
+        width: "80%",
+        height: "60%",
+        modal: true,
+        visible: false,
+        draggable: true,
+        actions: ["close"]
+
+    }).data("kendoWindow");
+
+
+    $("#gridJurnalTM").kendoGrid({
+        dataSource: {
+            batch: true,
+            transport: {
+                read: {
+                    url: "/ValidasiAccrued/ajaxJurnalTM",
+                    //                    data: { S_VW_T_JURNAL_TM: objDetail },
+                    contentType: "application/json",
+                    type: "POST",
+                },
+
+                parameterMap: function (data, operation) {
+
+                    if (operation != "read") {
+
+                        var result = {};
+
+                        for (var i = 0; i < data.models.length; i++) {
+                            var datamodel = data.models[i];
+
+                            for (var member in datamodel) {
+                                result[member] = datamodel[member];     //ini
+                            }
+                        }
+
+                        return result;
+                    } else {
+                        return JSON.stringify(data)
+                    }
+
+                }
+            },
+            error: function (e) {
+                if (e.errors) {
+                    alert(e.errors);
+                    this.cancelChanges();
+                }
+            },
+            schema: {
+                data: "Data",
+                total: "Total",
+                model: {
+                    id: "PID_JURNAL",
+                    fields: {
+                        PID_JURNAL: { type: "string", editable: false },
+                        NOMER_JURNAL: { type: "string", editable: false },
+                        DESKRIPSI: { type: "string", editable: true },
+                        TANGGAL: { type: "string", editable: true },
+                        PERIODE: { type: "string", editable: true },
+                        ACCOUNT: { type: "string", editable: true },
+                        AMOUNT_USD: { type: "float", editable: true },
+                        AMOUNT_IDR: { type: "float", editable: true },
+                        AMOUNT_ORI: { type: "float", editable: true },
+                        CURRENCY: { type: "string", editable: true },
+                        DISTRICT: { type: "string", editable: true },
+                        DESKIRIPSI_DETAIL: { type: "string", editable: true }
+                        //PERIODE_STATUS: { type: "string", title: "STATUS", editable: false }
+                    }
+                }
+
+            },
+            pageSize: 15,
+            serverPaging: true,
+            serverFiltering: true,
+            serverSorting: true
+        },
+        filterable: true,
+        sortable: true,
+        pageable: true,
+        editable: "popup", //inline
+        selectable: true,
+        resizable: true,
+        groupable: true,         //INI pivot
+        //toolbar: ["create"],
+
+        //HEADER
+        columns: [
+              { field: "PID_JURNAL", title: "PID_JURNAL", width: "30px", required: true, hidden: true },
+              { field: "NOMER_JURNAL", title: "NOMER_JURNAL", width: "120px", required: true, hidden: true },
+              { field: "DESKRIPSI", title: "DESKRIPSI", width: "120px", required: true, hidden: true },
+              { field: "PERIODE", title: "PERIODE", width: "120px", required: true },
+              { field: "ACCOUNT", title: "ACCOUNT", width: "120px", required: true },
+              { field: "AMOUNT_USD", title: "AMOUNT_USD", width: "120px", required: true },
+              { field: "AMOUNT_IDR", title: "AMOUNT_IDR", width: "120px", required: true },
+              { field: "AMOUNT_ORI", title: "AMOUNT_ORI", width: "120px", required: true },
+              { field: "CURRENCY", title: "CURRENCY", width: "120px", required: true },
+              { field: "DISTRICT", title: "DISTRICT", width: "120px", required: true },
+              { field: "DESKIRIPSI_DETAIL", title: "DESKIRIPSI_DETAIL", width: "120px", required: true },
+            //{
+            //    command: ['edit'], title: "detail", width: "50"
+            //},
+        ],
+    }).data("kendoGrid");
+
+    function VWJurnal() {
+        wndJurnalTM.center().open();
+    }

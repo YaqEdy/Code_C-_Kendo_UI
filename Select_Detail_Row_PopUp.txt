@@ -1,0 +1,186 @@
+======GRID=====
+data-columns="[
+ {command:[{name:'Select',click: SelectData}],title: 'Action',width:28},  
+
+    <div id="WND_SELECT_ACS">
+        <div id="gridSELECT_ACS"></div>
+    </div>
+
+
+==========JS===============
+//=============Select=============
+$(document).ready(function () {
+  wnd_selectACS = $("#WND_SELECT_ACS").kendoWindow({
+        title: "Detail ACS",
+        width: "90%",
+        height: "70%",
+        modal: true,
+        visible: false,
+        draggable: true,
+        actions: ["Maximize", "Close"],
+    }).data("kendoWindow");
+});
+
+
+function SelectData(e) {
+    e.preventDefault();
+    e.stopImmediatePropagation();
+
+    var gridItem = $("#gridVWDATA").data("kendoGrid");
+    var dataItem = gridItem.dataItem($(e.currentTarget).closest("tr"));
+    console.log(dataItem.PID_TEMPLATE, dataItem.PERIODE);
+    //pembuatan detail data
+    var i_cls_data = {
+        PID_TEMPLATE: dataItem.PID_TEMPLATE,
+        PERIODE: dataItem.PERIODE
+    }
+        gridSELECT_ACS(i_cls_data);
+        wnd_selectACS.center().open();
+
+}
+
+//=========GRID ACS=========
+function gridSELECT_ACS(i_objSelect) {
+    //console.log(i_objSelect);
+    if ($("#gridSELECT_ACS").data().kendoGrid != null) {
+        $('#gridSELECT_ACS').data().kendoGrid.destroy(); // to destory instance
+        $('#gridSELECT_ACS').empty(); // to destroy component
+    }
+    var grid = $("#gridSELECT_ACS").kendoGrid({
+        dataSource: {
+            type: "json",
+            error: function (e) {
+                if (e.errors == true) {
+                    var grid_error = $("#gridSELECT_ACS").data('kendoGrid');
+                    grid_error.one("dataBinding", function (e) {
+                        e.preventDefault();
+                    });
+                    //this.cancelChanges();
+                }
+            },
+            requestEnd: function (e) {
+                if (e.type == "destroy" && e.response.status == false) {
+                    this.cancelChanges();
+                }
+                if ((e.type == "create" || e.type == "update") && e.response.status == true) {
+                    $("#gridSELECT_ACS").data('kendoGrid').dataSource.read();
+                }
+            },
+            transport: {
+                read: {
+                    url: $("#urlPath").val() + "/UploadData/ReadSelectACS",
+                    contentType: "application/json",
+                    data: { S_TBL_T_AC: i_objSelect },
+                    type: "POST",
+                    cache: false,
+                },
+                parameterMap: function (data, operation) {
+                    data.PERIODE = kendo.toString(data.PERIODE);
+                    return kendo.stringify(data)
+                },
+            },
+            pageSize: 15,
+            serverPaging: true,
+            serverFiltering: true,
+            serverSorting: true,
+            schema: {
+                errors: function (response) {
+                    if (response.status == false) {
+                        alert("Error: " + response.remarks);
+                        return true;
+                    } else if (response.status == true) {
+                        alert(response.remarks);
+                    }
+                    return false;
+                },
+                data: "Data",
+                total: "Total",
+                model: {
+                    id: "PID_ACS",
+                    fields: {
+                        PERIODE: { type: "string", editable: false },
+                        COA_PAMA_CODE: { type: "string", editable: true },
+                        COA_PAMA_NAME: { type: "string", editable: true },
+                        DSTRCT_CODE: { type: "string", editable: true },
+                        BEGINING_BALANCE: { type: "string", editable: true },
+                        MUTASI_DEBIT: { type: "string", editable: true },
+                        MUTASI_CREDIT: { type: "string", editable: true },
+                        REVERSE_DEBIT: { type: "string", editable: true },
+                        REVERSE_CREDIT: { type: "string", editable: true },
+                        ENDING_BALANCE: { type: "string", editable: true },
+                        ADJUSTMENT_DEBIT: { type: "string", editable: true },
+                        ADJUSTMENT_CREDIT: { type: "string", editable: true },
+                        FINAL: { type: "string", editable: true },
+                        DATETIME: { type: "date", editable: true },
+                        MODIFIED_BY: { type: "string", editable: true }
+
+                    }
+                }
+            }
+        },
+        height: 400,
+        filterable: true,
+        sortable: true,
+        editable: "popup",
+        groupable: "true",
+        // toolbar: ["create"],
+        pageable: {
+            refresh: true,
+            buttonCount: 10,
+            input: true,
+            pageSizes: [10, 20, 50, 100, 1000, 100000],
+            info: true,
+            messages: {
+            }
+        },
+        columns: [
+              { field: "PID_ACS", title: "PID_ACS", width: "120px", required: true, hidden: true },
+              { field: "PERIODE", title: "PERIODE", width: "120px", required: true, hidden: false },
+              { field: "COA_PAMA_CODE", title: "COA_PAMA_CODE", width: "120px", required: true, hidden: false },
+              { field: "COA_PAMA_NAME", title: "COA_PAMA_NAME", width: "120px", required: true, hidden: false },
+              { field: "DSTRCT_CODE", title: "DSTRCT_CODE", width: "120px", required: true, hidden: false },
+              { field: "BEGINING_BALANCE", title: "BEGINING_BALANCE", width: "120px", required: true, hidden: false },
+              { field: "MUTASI_DEBIT", title: "MUTASI_DEBIT", width: "120px", required: true, hidden: false },
+              { field: "MUTASI_CREDIT", title: "MUTASI_CREDIT", width: "120px", required: true, hidden: false },
+              { field: "REVERSE_DEBIT", title: "REVERSE_DEBIT", width: "120px", required: true, hidden: false },
+              { field: "REVERSE_CREDIT", title: "REVERSE_CREDIT", width: "120px", required: true, hidden: false },
+              { field: "ENDING_BALANCE", title: "ENDING_BALANCE", width: "120px", required: true, hidden: false },
+              { field: "ADJUSTMENT_DEBIT", title: "ADJUSTMENT_DEBIT", width: "120px", required: true, hidden: false },
+              { field: "ADJUSTMENT_CREDIT", title: "ADJUSTMENT_CREDIT", width: "120px", required: true, hidden: false },
+              { field: "FINAL", title: "FINAL", width: "120px", required: true, hidden: false },
+              { field: "DATETIME", title: "DATETIME", width: "120px", required: true, hidden: false, format: "{0:dd/MM/yyyy}" },
+              { field: "MODIFIED_BY", title: "MODIFIED_BY", width: "120px", required: true, hidden: false },
+
+            //{
+            //    command: ['edit'], title: "detail", width: "50"
+            //},
+        ],
+
+    });
+}
+
+
+
+==========Controller============
+
+        [HttpPost]
+        public ActionResult ReadSelectACS(TBL_T_AC S_TBL_T_AC, int take, int skip,
+                                     IEnumerable<Kendo.DynamicLinq.Sort> sort, Kendo.DynamicLinq.Filter filter)
+        {
+
+            try
+            {
+                return Json(P_CLS_UPLOAD_DATA.ReadSelectACS().Where(f => f.PERIODE.Equals(S_TBL_T_AC.PERIODE)).ToDataSourceResult(take, skip, sort, filter));
+
+            }
+            catch (Exception e)
+            {
+                return this.Json(new { error = e.ToString() }, JsonRequestBehavior.AllowGet);
+            }
+        }
+
+==============Model===========
+        public IQueryable<TBL_T_AC> ReadSelectACS()
+        {
+            return P_CTX_DB.TBL_T_ACs;
+        }

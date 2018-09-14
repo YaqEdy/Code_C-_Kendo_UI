@@ -1,0 +1,33 @@
+===================== JS ==================
+function DeleteFile() {
+    $.ajax({
+        url: $("#urlPath").val() + "/COETraining/DeletePhoto?sPhotoFileName=" + iPhotoFileName,
+        //data: { sPhotoFileName: iPhotoFileName },
+        type: "POST",
+        dataType: "json",
+        contentType: "application/json",
+        success: function (e) {
+            alert(e.iremarks);
+        }
+    });
+}
+
+
+
+
+
+=============== Controller ================
+        [HttpPost]
+        public JsonResult DeletePhoto(string sPhotoFileName)
+        {
+            var fullPath = Request.MapPath("~/UploadFile/Csv/" + sPhotoFileName);
+
+            if (System.IO.File.Exists(fullPath))
+            {
+                System.IO.File.Delete(fullPath);
+                return Json(new { iremarks = "Sukses" });
+            }
+            return Json(new { iremarks = "Gagal" });
+
+
+        }

@@ -1,0 +1,15 @@
+        public ActionResult Index()
+        {
+
+            var startTimeSpan = TimeSpan.Zero;
+            var periodTimeSpan = TimeSpan.FromSeconds(20); //selama 20 detik
+
+            var timer = new System.Threading.Timer((e) =>
+            {
+                ReadDD_Parent();// Running kondisi
+
+            }, null, startTimeSpan, periodTimeSpan);
+           
+
+            return View();
+        }

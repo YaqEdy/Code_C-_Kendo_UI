@@ -1,0 +1,218 @@
+============HTML Grid=============
+<div class="col-md-1"><input type="button" value="Delete" class="btn btn-danger" onclick="btnDeleteData()" /></div>
+    <div class="row">
+        <div class="col-md-12" id="divGridVWDATA" hidden>
+            <div class="row form-group" id="divVWDATA">
+                <div class="col-md-12">
+                    <div id="gridVWDATA"
+                         data-role="grid"
+                         data-editable="inline"
+                         data-sortable="true"
+                         data-filterable="true"
+                         data-selectable="false"
+                         @*data-toolbar="['create']"*@
+                         data-pageable="{refresh: true,buttonCount: 10,input: true,pageSizes: [10, 20, 50, 100, 1000, 100000],info: true}"
+                         data-groupable="false"
+                         data-bind="source: dsVWDATA"
+                         data-columns="[
+                                        {command:[{name:'Select',click: SelectData}],title: 'Action',width:28},
+                                        {field:'PID_TEMPLATE', title:'Type Data', width:100, hidden: true},
+                                        {field:'UPLOAD_DESC', title:'Type Data', width:100},
+                                        {field:'PERIODE', title:'Last Period', width:100},
+                                        {field:'LAST_UPDATE_DATE', title:'Last Update', width:100,format:'{0:dd/MM/yyyy}'},
+                                        {headerTemplate:$('#tmplt_checkAllData').html(), width:30, template : $('#tmplt_IsSelectedData').html() }
+                             ]">
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+@*============VWDATA===========*@
+<script id="tmplt_IsSelectedData" type="text/x-kendo-tmpl">
+    <input type="checkbox" id="IS_SELECTED#=PID_TEMPLATE#" data-type="boolean" onchange="ischeckData()" />
+</script>
+<script id="tmplt_checkAllData" type="text/x-kendo-tmpl">
+    <input type="checkbox" id="CHECK_ALL_Data" name="CHECK_ALL_Data" data-type="boolean" onchange="check_allData()" />Check ALL
+</script>
+
+
+
+
+
+
+
+
+=========JS=========
+//============DELETE ALL=============
+function ischeckData() {
+    var arr_obj = [];
+    var dataItem = VWDATAViewModel.dsVWDATA.data();
+
+    for (var i = 0; i < dataItem.length; i++) {
+
+        if ($("#IS_SELECTED" + dataItem[i].PID_TEMPLATE).is(':checked')) {
+            var iClsTransaksiDATA = {
+                PID_TEMPLATE: dataItem[i].PID_TEMPLATE
+            }
+            $("#IS_SELECTED" + dataItem[i].PID_TEMPLATE).prop('checked', 1);
+            arr_obj.push(iClsTransaksiDATA);
+        }
+    }
+
+    console.log(arr_obj);
+
+    if (arr_obj <= 0) {
+        alert("Pilih data terlebih dahulu");
+    }
+}
+
+function check_allData() {
+    var arr_obj = [];
+    var dataItem = VWDATAViewModel.dsVWDATA.data();
+    if ($("#CHECK_ALL_Data").is(':checked')) {
+        //alert("cek");
+        for (var i = 0; i < dataItem.length; i++) {
+            $("#IS_SELECTED" + dataItem[i].PID_TEMPLATE).prop('checked', 1);
+            if ($("#IS_SELECTED" + dataItem[i].PID_TEMPLATE).is(':checked')) {
+                var i_cls_transaksi_DATA = {
+                    PID_TEMPLATE: dataItem[i].PID_TEMPLATE,
+                }
+                arr_obj.push(i_cls_transaksi_DATA);
+            }
+        }
+        console.log(arr_obj);
+        //if (arr_obj > 0) {
+        //    //alert("Siap eksekusi");
+        //} else {
+        //    //alert("Tidak ada yang dapat dieksekusi");
+        //}
+    } else {
+        //alert("uncheck");
+        for (var i = 0; i < dataItem.length; i++) {
+            $("#IS_SELECTED" + dataItem[i].PID_TEMPLATE).prop('checked', 0);
+        }
+    }
+
+}
+
+function btnDeleteData() {
+    if (!confirm('Apakah Anda yakin ?')) {
+        return false;
+    }
+
+    var arr_obj = []
+    var grid_Data = $("#gridVWDATA").data("kendoGrid");
+    var totalchecked = $("[type='checkbox']:checked").length;
+    if (totalchecked <= 0) {
+        alert("Belum ada data yang di pilih !");
+    } else {
+        var i_inc = 0;
+        var param = "";
+        $("#gridVWDATA tbody tr").each(function () {
+            var isChek = $('td input[type=checkbox]', this).is(':checked').toString();
+            var data = VWDATAViewModel.dsVWDATA.data();
+            var rows = data[i_inc];
+            if (isChek == "True" || isChek == "true") {
+                var i_cls_data = {
+                    PID_TEMPLATE: rows.PID_TEMPLATE,
+                    PERIODE: rows.PERIODE
+                }
+                arr_obj.push(i_cls_data);
+            }
+            i_inc++;
+        })
+        console.log(arr_obj);
+        if (arr_obj.length > 0) {
+            //alert("Siap eksekusi");
+            $.ajax({
+                url: $("#urlPath").val() + "/UploadData/DeleteData",
+                contentType: "application/json",
+                dataType: "json",
+                type: "POST",
+                data: JSON.stringify({ s_tbl_UploadData: arr_obj }),
+                success: function (response) {
+                    alert(response.remarks);
+                    $("#gridVWDATA").data("kendoGrid").dataSource.read();
+                    $("#gridVWDATA").data("kendoGrid").refresh();
+                    kendo.bind($("#divVWDATA"), VWDATAViewModel);
+                    //kendo.bind(document.body, VWDATAViewModel);
+                }
+            });
+        }
+        else {
+            alert("Tidak ada data yang di proses");
+        }
+    }
+}
+
+
+
+==============Controller============
+        [HttpPost]
+        public ActionResult DeleteData(IEnumerable<VW_UPLOAD_DATA> s_tbl_UploadData)
+        {
+            bool? iBlStatus = false;
+            string iStrREmarks = "";
+            
+            try
+            {
+                P_CLS_UPLOAD_DATA.delete(s_tbl_UploadData, ref iStrREmarks);
+                iStrREmarks = "Data berhasil di hapus";
+                iBlStatus = true;
+                return Json(new { status = iBlStatus, remarks = iStrREmarks, error = iStrREmarks }); 
+            }
+            catch (Exception e)
+            {
+                iStrREmarks = "Data gagal di hapus";
+                iBlStatus = false;
+                return this.Json(new { status = false, remarks = e.ToString() }, JsonRequestBehavior.AllowGet);
+            }
+        }
+
+
+============Model==================
+        public void delete(IEnumerable<VW_UPLOAD_DATA> s_tbl_UploadData, ref string sRemarks)
+        {
+            try
+            { 
+                //List<VW_UPLOAD_DATA> i_list = new List<VW_UPLOAD_DATA>();
+                VW_UPLOAD_DATA i_tbl_UploadData = new VW_UPLOAD_DATA();
+                foreach (VW_UPLOAD_DATA i_tbl_List in s_tbl_UploadData)
+                {
+                    if (i_tbl_List.PID_TEMPLATE == "1")
+                    {
+                        IEnumerable<TBL_T_AC> i_tbl_acs = P_CTX_DB.TBL_T_ACs.Where(f => f.PERIODE.Equals(i_tbl_List.PERIODE));
+                        P_CTX_DB.TBL_T_ACs.DeleteAllOnSubmit(i_tbl_acs);
+                        P_CTX_DB.SubmitChanges();                        
+                    }
+                    else if (i_tbl_List.PID_TEMPLATE == "2")
+                    {
+                        IEnumerable<TBL_T_MB> i_tbl_mb = P_CTX_DB.TBL_T_MBs.Where(f => f.TAHUN.Equals(i_tbl_List.PERIODE));
+                        P_CTX_DB.TBL_T_MBs.DeleteAllOnSubmit(i_tbl_mb);
+                        P_CTX_DB.SubmitChanges();
+                    }
+                    else if (i_tbl_List.PID_TEMPLATE == "3")
+                        {
+                            IEnumerable<TBL_T_EWAC> i_tbl_ewacs = P_CTX_DB.TBL_T_EWACs.Where(f => f.PERIODE.Equals(i_tbl_List.PERIODE));
+                            P_CTX_DB.TBL_T_EWACs.DeleteAllOnSubmit(i_tbl_ewacs);
+                            P_CTX_DB.SubmitChanges();                            
+                        }
+                    else if (i_tbl_List.PID_TEMPLATE == "4")
+                    {
+                        IEnumerable<TBL_T_IB> i_tbl_ibs = P_CTX_DB.TBL_T_IBs.Where(f => f.TAHUN.Equals(i_tbl_List.PERIODE));
+                        P_CTX_DB.TBL_T_IBs.DeleteAllOnSubmit(i_tbl_ibs);
+                        P_CTX_DB.SubmitChanges();                        
+                    }
+                }
+
+
+            }
+            catch (Exception e)
+            {
+                sRemarks = e.ToString();
+
+            }
+        }
+
+
+

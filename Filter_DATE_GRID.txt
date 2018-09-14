@@ -1,0 +1,13 @@
+====GRID=======
+data-filterable="true"
+data-columns="[
+		{field:'LAST_UPDATE_DATE', title:'Last Update', width:100, format:'{0:dd/MM/yyyy}'},
+	      ]
+
+serverFiltering: false,
+
+
+===========VW_DATABASE==============
+
+CONVERT(date, LAST_UPDATE_DATE) AS LAST_UPDATE_DATE
+

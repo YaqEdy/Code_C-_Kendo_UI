@@ -1,0 +1,65 @@
+==========1===========================
+
+$("#dropdownlist").kendoDropDownList({
+    optionLabel: "[Pilih]",
+    dataTextField: "text",
+    dataValueField: "value",
+    dataSource: [
+	    	{ text: "Upload ACS", value: "UploadACS" },
+    		{ text: "Upload MB", value: "UploadMB" },
+   		{ text: "Upload IBS", value: "UploadIBS" },
+    		{ text: "Upload EWACS", value: "UploadEWACS" },
+    		{ text: "Upload MA", value: "UploadMA" },
+    		{ text: "Upload CFLY", value: "UploadCFLY" }
+],
+    filter: "startswith",
+    select: onSelect,
+    //change: onChange,
+    //close: onClose,
+    //open: onOpen,
+    //filtering: onFiltering,
+    //dataBound: onDataBound
+});
+
+
+function onSelect(e) {
+    if (this.dataItem(e.item).value == "UploadACS") {
+	}
+}
+
+
+
+<div class="row" id="FM_DD_TYPE">
+    <div class="col-md-2">Type Upload Data</div>
+    <div class="col-md-2 demo-section k-content">
+        @*<h4 class="title">Type Upload Data</h4>*@
+        <input id="dropdownlist" style="width: 100%;" />
+    </div>
+    <div class="col-md-1">
+        <input id="download" type="submit" value="Download Template" class="btn btn-dropbox" style="margin-right:100%" onclick="DTemplate()" />
+    </div>
+
+</div>
+
+
+
+==================== 2 =========================
+function DD_isLulus(container, options) {
+    console.log(options.field)
+    $('<input required data-bind="value:' + options.field + '"/>')
+        .appendTo(container)
+        .kendoDropDownList({
+            optionLabel: "Pilih",
+            dataTextField: "text",
+            dataValueField: "value",
+            dataSource: [
+                          { text: "Y", value: "Y" },
+                          { text: "N", value: "N" }
+            ],
+            change: function(e) {
+                console.log(e);
+            },
+            autoBind: false,
+            index: 0
+        });
+}

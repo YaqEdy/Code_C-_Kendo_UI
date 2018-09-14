@@ -1,0 +1,124 @@
+=================== view ===================
+<div class="form-horizontal" id="WND_UPLOAD" hidden>
+    <div class="row">
+        <div id="uploadAtt" class="col-md-12">
+            <div class="panel panel-default">
+                <div class="panel-body">
+                    <h4><strong>Upload Attachment</strong></h4>
+                    <div class="form-horizontal">
+                        <div class="row form-group">
+                            <div class="col-md-1"><label>Upload</label></div>
+                            <div class="col-md-3">
+                                <input type="file" id="file_uploadAtt" />
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-1">
+        <input type="button" class="btn btn-warning" onclick="btn_Cancel()" value="Cancel" />
+    </div>
+</div>
+
+
+==================== JS ======================
+ $("#file_uploadAtt").kendoUpload({
+        multiple: true,
+        async: {
+            saveUrl: "save",
+            removeUrl: "remove",
+            autoUpload: false
+        },
+        upload: uploadFileAtt,
+        success: onSuccessUploadAtt
+    });
+
+function uploadFileAtt(e) {
+    var files = e.files;
+    $.each(files, function () {
+        $("#file_uploadAtt").data("kendoUpload").options.async.saveUrl = $("#urlPath").val() + '/Monitoring_Asset_Radio_Riq/UploadFileAtt?sNRP_GL=' + iNRP_GL;
+    });
+}
+function onSuccessUploadAtt(e) {
+    RADIO_RIQ_ViewModel.ds_grid_RADIO_RIQ.read({ sNRP_GL: iNRP_GL });
+    alert(e.response.remarks);
+    WND_UPLOAD.close();
+}
+
+function btn_Cancel() {
+    WND_UPLOAD.close();
+}
+
+
+
+================ controller =================
+   [HttpPost]
+        public ActionResult UploadFileAtt(string sNRP_GL)
+        {
+            this.pv_CustLoadSession();
+            i_ctx_db = new DtClass_LeaderHCGSDataContext();
+            var fname = "";
+            var fname_s = "";
+            var fname_l = "";
+            // Checking no of files injected in Request object  
+            if (Request.Files.Count > 0)
+            {
+                try
+                {
+                   // ipath = Server.MapPath("~" + ConfigurationManager.AppSettings["Upload_file_path"].ToString());
+
+
+                    //  Get all files from Request object  
+                    HttpFileCollectionBase files = Request.Files;
+                    for (int i = 0; i < files.Count; i++)
+                    {
+                        HttpPostedFileBase file = files[i];
+
+                        // Checking for Internet Explorer  
+                        if (Request.Browser.Browser.ToUpper() == "IE" || Request.Browser.Browser.ToUpper() == "INTERNETEXPLORER")
+                        {
+                            string[] testfiles = file.FileName.Split(new char[] { '\\' });
+                            fname = testfiles[testfiles.Length - 1];
+                        }
+                        else
+                        {
+                            fname = file.FileName;
+                        }
+
+                        // Get the complete folder path and store the file inside it. 
+                        fname_s = Path.Combine(ConfigurationManager.AppSettings["Upload_file_url"].ToString(), fname);
+                        fname_l = Path.Combine(Server.MapPath("~" + ConfigurationManager.AppSettings["Upload_file_path"].ToString()), fname);
+                        file.SaveAs(fname_l);
+                    }
+
+                    IEnumerable<VW_MONITORING_RIG> sTBL = i_ctx_db.VW_MONITORING_RIGs.Where(z => z.NRP.Equals(sNRP_GL));
+                    foreach (var iList in sTBL)
+                    {
+                        TBL_T_MONITORING_RIG tbl = i_ctx_db.TBL_T_MONITORING_RIGs.Where(z => z.MTR_RIG_PID.Equals(iList.MTR_RIG_PID)).FirstOrDefault();
+                        tbl.ATTACHMENT = fname_s;
+
+                        tbl.MODIFIED_DATE = DateTime.Now;
+                        tbl.MODIFIED_BY = iStrSessNRP;
+
+                        i_ctx_db.SubmitChanges();
+                    }
+
+                    //TBL_T_MONITORING_RIG iTbl = i_ctx_db.TBL_T_MONITORING_RIGs.Where(z => z.MTR_RIG_PID.Equals(sPID)).FirstOrDefault();
+                    //iTbl.ATTACHMENT = fname_s;
+                    //i_ctx_db.SubmitChanges();
+
+                    // Returns message that successfully uploaded  
+                    return Json(new { remarks = "File Uploaded Successfully!" }, JsonRequestBehavior.AllowGet);
+                }
+                catch (Exception ex)
+                {
+                    return Json(new { remarks="Error occurred. Error details: " + ex.Message},JsonRequestBehavior.AllowGet);
+                }
+            }
+            else
+            {
+                return Json(new { remarks = "No files selected." }, JsonRequestBehavior.AllowGet);
+            }
+        }

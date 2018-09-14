@@ -1,0 +1,16 @@
+=Sum(IIF(Fields!SORT_ORDER_INT.Value = (-9) or Fields!SORT_ORDER_INT.Value = 0,0,Fields!TOT_AMOUNT_IDR.Value))/Sum(IIF(Fields!SORT_ORDER_INT.Value = 0,Fields!TOT_AMOUNT_IDR.Value,0))
+
+
+=(Sum(IIF(Fields!SORT_ORDER_INT.Value = 0,Fields!TOT_AMOUNT_IDR.Value,0))-(Sum(IIF(Fields!SORT_ORDER_INT.Value = (-9) or Fields!SORT_ORDER_INT.Value = 0,0,Fields!TOT_AMOUNT_IDR.Value))))/Sum(IIF(Fields!SORT_ORDER_INT.Value = 0,Fields!TOT_AMOUNT_IDR.Value,0))
+
+
+
+Public Function Divide(ByVal dividend As Double, ByVal divisor As Double) As Double
+   If IsNothing(divisor) Or divisor = 0 Or IsNothing(dividend) Or dividend = 0 Then
+      Return 0
+   Else
+      Return dividend / divisor
+   End If
+End Function
+
+Code.Divide(sum(a),sum(b))

@@ -1,0 +1,13 @@
+=IIF(RIGHT(Fields!PERIOD.Value,2)="01","JAN",
+IIF(RIGHT(Fields!PERIOD.Value,2)="02","FEB",
+IIF(RIGHT(Fields!PERIOD.Value,2)="03","MAR",
+IIF(RIGHT(Fields!PERIOD.Value,2)="04","APR",
+IIF(RIGHT(Fields!PERIOD.Value,2)="05","MEY",
+IIF(RIGHT(Fields!PERIOD.Value,2)="06","JUN",
+IIF(RIGHT(Fields!PERIOD.Value,2)="07","JUL",
+IIF(RIGHT(Fields!PERIOD.Value,2)="08","AUG",
+IIF(RIGHT(Fields!PERIOD.Value,2)="09","SEP",
+IIF(RIGHT(Fields!PERIOD.Value,2)="10","OKT",
+IIF(RIGHT(Fields!PERIOD.Value,2)="11","NOV",
+IIF(RIGHT(Fields!PERIOD.Value,2)="12","DES",""
+))))))))))))

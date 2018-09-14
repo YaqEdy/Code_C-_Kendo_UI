@@ -1,0 +1,27 @@
+        private static String NoForm(int sNoForm)
+        {
+            var p_ctx_db = new LTS_DB_CISADDataContext();
+            IQueryable<T_LEAVE_MANAGEMENT> iTbl = p_ctx_db.T_LEAVE_MANAGEMENTs;
+            sNoForm = iTbl.Where(a => a.START_DATE.Year == DateTime.Now.Year).Count();
+            if (sNoForm == 0)
+            {
+                sNoForm = 1;
+            }
+            else
+            {
+                foreach (var item in iTbl.Where(a => a.START_DATE.Year == DateTime.Now.Year).OrderBy(s => s.NO_FORM))
+                {
+                    if (sNoForm == Convert.ToInt32(item.NO_FORM.Substring(11, 4)))
+                    {
+                        sNoForm = sNoForm + 1;
+
+                        if (sNoForm == Convert.ToInt32(item.NO_FORM.Substring(11, 4)))
+                        {
+                            NoForm(0);
+                        }
+
+                    }
+                }
+            }
+            return sNoForm.ToString();
+        }

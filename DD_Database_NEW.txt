@@ -1,0 +1,69 @@
+
+function DD_Kehadiran(container, options) {
+    $('<input required data-bind="value:' + options.field + '"/>')
+     .appendTo(container)
+        .kendoDropDownList({
+            optionLabel: "Pilih",
+            dataTextField: "KEHADIRAN_DESC",
+            dataValueField: "ID_KEHADIRAN",
+            dataSource: {
+                type: "json",
+                transport: {
+                    read: {
+                        url: $("#urlPath").val() + "/Home/ReadDD_R_Kehadiran",
+                        contentType: "application/json",
+                        type: "POST",
+                        cache: false
+                    }
+                },
+
+            },
+            //filter: "contains",
+            select: function (e) {
+                var dataItem = this.dataItem(e.item.index());
+                options.model.KEHADIRAN_DESC = dataItem.KEHADIRAN_DESC;
+            },
+            change: function (e) {
+                console.log(e);
+                options.model.KEHADIRAN = e.sender._selectedValue;
+            }
+        });
+}
+
+
+function ClickSaveAll() {
+    var grid = $("#Grid_Kehadiran").data("kendoGrid");
+    //console.log(grid._data);
+    $.ajax({
+        url: $("#urlPath").val() + "/Home/UpdateAllKehadiran",
+        dataType: "json",
+        contentType: "application/json",
+        type: "POST",
+        data: JSON.stringify({ sTBL: grid._data }),
+        success: function (e) {
+            $("#Grid_Kehadiran").data('kendoGrid').dataSource.read();
+            $("#Grid_VIP").data('kendoGrid').dataSource.read();
+            alert(e.Remarks);
+            Persentase();
+        },
+    });
+}
+
+
+
+
+
+
+        [HttpPost]
+        public JsonResult ReadDD_R_Kehadiran()
+        {
+            try
+            {
+                var iTbl = p_ctx_db.TBL_R_KEHADIRANs;
+                return Json(iTbl);
+            }
+            catch (Exception e)
+            {
+                return this.Json(new { remarks = e.ToString(), error = e.ToString() }, JsonRequestBehavior.AllowGet);
+            }
+        }

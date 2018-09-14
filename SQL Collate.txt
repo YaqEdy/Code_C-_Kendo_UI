@@ -1,0 +1,3 @@
+SELECT 
+	DISTRICT collate database_default AS DISTRICT
+FROM DBO.TBL_NAMA_TBL

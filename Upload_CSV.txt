@@ -1,0 +1,702 @@
+http://docs.aws.amazon.com/elasticbeanstalk/latest/dg/create_deploy_NET.quickstart.html
+
+http://www.c-sharpcorner.com/UploadFile/b07128/deploy-Asp-Net-website-on-iis-in-our-local-machine/
+
+
+http://www.asp.net/mvc/overview/deployment/visual-studio-web-deployment/deploying-to-iis
+
+
+
+
+@{
+    ViewBag.Title = "UploadIBS";
+    ViewBag.dashboard = "Master";
+    ViewBag.dashboardSmall = "Upload IBS";
+    Layout = "~/Views/Shared/_LayoutMaster.cshtml";
+    ViewBag.pathParent = Url.Content("~").Substring(0, Url.Content("~").Length - 1);
+}
+
+<input type="hidden" id="urlPath" name="urlPath" value="@ViewBag.pathParent" />
+<input type="hidden" id="sSessionNRP" name="sSessionNRP" value="@ViewData["sSessionNRP"]" />
+<input type="hidden" id="sTgl" name="sTgl" value="@ViewData["sTgl"]" />
+<input type="hidden" id="sPeriode" name="sPeriode" value="@ViewData["sPeriode"]" />
+
+    @*=======Upload IBS========*@
+    <div class="FM_IBS">
+        <div class="form-horizontal">
+            <div class="row">
+                <div id="uploadIBS" class="col-md-12" hidden>
+                    <div class="panel panel-default">
+                        <div class="panel-body">
+                            <h4><strong>UPLOAD IBS</strong></h4>
+                            <div class="form-horizontal">
+                                <div class="row form-group">
+                                    <div class="col-md-1"><label>Pilih IBS</label></div>
+                                    <div class="col-md-5">
+                                        <input type="radio" name="type" id="rdRevenue1" value="1" />&nbsp;Revenue&nbsp;&nbsp;
+                                        <input type="radio" name="type" id="rdCost1" value="2" />&nbsp;Cost&nbsp;&nbsp;
+                                        <input type="radio" name="type" id="rdProductionOB1" value="3" />&nbsp;Production OB&nbsp;&nbsp;
+                                        <input type="radio" name="type" id="rdProductionCOAL1" value="4" />&nbsp;Production COAL&nbsp;&nbsp;
+                                    </div>
+                                </div>
+                                <div class="row form-group">
+                                    <div class="col-md-1"><label>Upload</label></div>
+                                    <div class="col-md-3">
+                                        <input type="file" id="file_uploadIBS" />
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="form-horizontal" id="GR_DIV_IBS">
+            @*<div class="col-md-1"><input type="button" value="DELETE" class="btn btn-danger" onclick="btnDeleteIBS()" /></div>*@
+            <div class="row">
+                <div class="col-md-12" id="divGridIBS" hidden>
+                    <div class="row form-group" id="divIBS">
+                        <div class="col-md-12">
+                            <div id="gridIBS"
+                                 data-role="grid"
+                                 data-editable="inline"
+                                 data-sortable="true"
+                                 data-filterable="true"
+                                 data-selectable="false"
+                                 data-pageable="{refresh: true,buttonCount: 10,input: true,pageSizes: [10, 20, 50, 100, 1000, 100000],info: true}"
+                                 data-groupable="false"
+                                 data-bind="source: dsIBS"
+                                 data-columns="[
+                                        {command:[{name:'edit'}],title: 'Action',width:80},
+                                        {field:'SESSION_UPLOAD', title:'SESSION UPLOAD', width:200, hidden:true},
+                                        {field:'CREATED_DATE', title:'CREATED DATE', width:150, hidden:true},
+                                        {field:'CREATED_BY', title:'CREATED BY', width:150, hidden:true},
+                                        {field:'PID_IBS', title:'PID IBS', width:300, hidden:true},
+                                        {field:'DSTRCT_CODE', title: 'DSTRCT_CODE', width:125},
+                                        {field:'TAHUN', title: 'TAHUN', width:80},
+                                        {field:'JAN', title: 'JAN', width:70},
+                                        {field:'FEB', title: 'FEB', width:70},
+                                        {field:'MAR', title: 'MAR', width:70},
+                                        {field:'APR', title: 'APR', width:70},
+                                        {field:'MEI', title: 'MEI', width:70},
+                                        {field:'JUN', title: 'JUN', width:70},
+                                        {field:'JUL', title: 'JUL', width:70},
+                                        {field:'AUG', title: 'AUG', width:70},
+                                        {field:'SEP', title: 'SEP', width:70},
+                                        {field:'OCT', title: 'OCT', width:70},
+                                        {field:'NOV', title: 'NOV', width:70},
+                                        {field:'DEC', title: 'DEC', width:70},
+                                        {field:'TYPE', title: 'TYPE', width:130,editor:DDTypeIBS},
+                                        {field:'REMARKS', title: 'REMARKS', width:500}
+                                        ]">
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row form-group" id="divBtn">
+                        <div class="col-md-1"><input type="submit" value="SAVE" class="btn btn-success" onclick="saveIBS()" /></div>
+                        <div class="col-md-1"><input type="submit" value="CANCEL" class="btn btn-warning" onclick="cancel()" /></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+<script>
+
+var iSessionNRP = $("#sSessionNRP").val();
+var sPeriode = $("#sPeriode").val();
+var SessionID_IBS;
+var IBSViewModel;
+
+$(document).ready(function () {
+    kendo.bind($("#gridIBS"), IBSViewModel);
+    $("#file_uploadIBS").kendoUpload({
+        multiple: true,
+        async: {
+            saveUrl: "save",
+            //removeUrl: "remove",
+            autoUpload: false
+        },
+        ShowFileList: false,
+        upload: uploadFileIBS,
+        success: onSuccessUploadIBS,
+        complete: completeIBS
+    });
+    //kendo.bind(document.body, IBSViewModel);
+});
+
+function uploadFileIBS(e) {
+    if ($('#rdRevenue1').is(':checked')) {
+        iTypeIBS = $('#rdRevenue1').val();
+        console.log(iTypeIBS);
+    } else if ($('#rdCost1').is(':checked')) {
+        iTypeIBS = $('#rdCost1').val();
+        console.log(iTypeIBS);
+    } else if ($('#rdProductionOB1').is(':checked')) {
+        iTypeIBS = $('#rdProductionOB1').val();
+        console.log(iTypeIBS);
+    } else if ($('#rdProductionCOAL1').is(':checked')) {
+        iTypeIBS = $('#rdProductionCOAL1').val();
+        console.log(iTypeIBS);
+    }
+
+    var files = e.files;
+    $.each(files, function () {
+        $("#file_uploadIBS").data("kendoUpload").options.async.saveUrl = $("#urlPath").val() + '/UploadIBS/UploadCSVIBS?sTypeIBS=' + iTypeIBS;
+    });
+}
+function onSuccessUploadIBS(e) {
+    SessionID_IBS = e.response.iSessionIBS;
+    alert(e.response.remarks);
+    $("#divGridIBS").show();
+    $("#GR_DIV_IBS").show();
+}
+
+function completeIBS(e) {
+    IBSViewModel.dsIBS.read({ sStrsessionIBS: SessionID_IBS });
+}
+
+IBSViewModel = new kendo.data.ObservableObject({
+    dsIBS: new kendo.data.DataSource({
+        error: function (e) {
+            if (e.errors == true) {
+                var grid_error = $("#divGridIBS").data('kendoGrid');
+                grid_error.one("dataBinding", function (e) {
+                    e.preventDefault();
+                });
+                //this.cancelChanges();
+            }
+        }
+            , requestEnd: function (e) {
+                if (e.type == "destroy" && e.response.status == false) {
+                    this.cancelChanges();
+                }
+                if ((e.type == "create" || e.type == "update") && e.response.status == true) {
+                    IBSViewModel.dsIBS.read({ sStrsessionIBS: SessionID_IBS });
+                }
+            },
+        transport: {
+            read: {
+                url: $("#urlPath").val() + "/UploadIBS/getIBSTemp",
+                contentType: "application/json",
+                type: "POST",
+                data: { sStrsessionIBS: SessionID_IBS }
+            },
+
+            update: {
+                url: $("#urlPath").val() + "/UploadIBS/EditIBS",
+                contentType: "application/json",
+                type: "POST",
+            },
+
+            parameterMap: function (data, operation) {
+                if (operation == "read") {
+                    data.sStrsessionIBS= SessionID_IBS
+                }
+                return kendo.stringify(data);
+            }
+        },
+
+        schema: {
+            data: "Data",
+            total: "Total",
+            model: {
+                id: "PID_IBS",
+                fields: {
+                    SESSION_UPLOAD: { type: "string", editable: false },
+                    CREATED_DATE: { type: "number", editable: false },
+                    CREATED_BY: { type: "string", editable: false },
+                    PID_IBS: { type: "string", editable: false },
+                    DSTRCT_CODE: { type: "string", editable: true },
+                    TAHUN: { type: "string", editable: true },
+                    JAN: { type: "string", editable: true },
+                    FEB: { type: "string", editable: true },
+                    MER: { type: "string", editable: true },
+                    APR: { type: "string", editable: true },
+                    MEI: { type: "string", editable: true },
+                    JUN: { type: "string", editable: true },
+                    JUL: { type: "string", editable: true },
+                    AUG: { type: "string", editable: true },
+                    SEP: { type: "string", editable: true },
+                    OCT: { type: "string", editable: true },
+                    NOV: { type: "string", editable: true },
+                    DEC: { type: "string", editable: true },
+                    TYPE: { type: "string", editable: true, editor: DDTypeIBS, template: "#=TYPE" },
+                    REMARKS: { type: "string", editable: false }
+                }
+            }
+        },
+        pageSize: 10,
+        serverPaging: true,
+        serverFiltering: true,
+        serverSorting: true
+    })
+});
+
+function DDTypeIBS(container, options) {
+    $('<input required data-text-field="text" data-value-field="value" data-bind="value:' + options.field + '"/>')
+        .appendTo(container)
+        .kendoDropDownList({
+            dataSource: [
+                          { text: "Revenue", value: "1" },
+                          { text: "Cost ", value: "2" },
+                          { text: "Production OB ", value: "3" },
+                          { text: "Production COAL  ", value: "4" }
+            ],
+            autoBind: false,
+            index: 0
+        });
+    //console.log(options);
+    //console.log(options.field);
+}
+
+
+function saveIBS() {
+    if (!confirm('Apakah Anda yakin ?')) {
+        return false;
+    }
+    $.ajax({
+        url: $("#urlPath").val() + "/UploadIBS/saveUploadIBS",
+        dataType: "json",
+        contentType: "application/json",
+        type: "POST",
+        data: JSON.stringify({ sStrsessionIBS: SessionID_IBS }),
+        success: function (response) {
+            alert(response.remarks);
+            console.log(response);
+            //IBSViewModel.dsIBS.read();
+            $("#gridVWDATA").data("kendoGrid").dataSource.read();
+            $('#gridVWDATA').data('kendoGrid').refresh();
+            //Remove select files (success)
+            $(".k-widget.k-upload").find("ul").remove();
+            //Hide kendo (success)
+            $('#GR_DIV_IBS').hide();
+        },
+        complete: function (e) {
+
+        }
+    });
+}
+
+</script>
+
+
+==============Controller===================
+
+using System;
+using System.Collections.Generic;
+using System.Configuration;
+using System.Data;
+using CORED.Models;
+using System.Data.SqlClient;
+using System.IO;
+using System.Linq;
+using System.Net;
+using System.Text.RegularExpressions;
+using System.Threading.Tasks;
+using System.Web;
+using System.Web.Mvc;
+using Kendo.DynamicLinq;
+
+namespace CORED.Controllers
+{
+    public class UploadIBSController : Controller
+    {
+        ClsUploadIBS P_CLS_IBS = new ClsUploadIBS();
+        DtClass_CoredDataContext db_CORED;
+        private MenuLeftClass menuLeftClass = new MenuLeftClass();
+        //private ClsSession iClsSession = new ClsSession();
+        private string iRemarks = string.Empty;
+        private string iStrSessNRP = string.Empty;
+        private string iStrSessDistrik = string.Empty;
+        private string iStrSessGPID = string.Empty;
+        public string keterangan;
+
+        // GET: UploadIBS
+        public ActionResult Index()
+        {
+            this.pv_CustLoadSession();
+            if (Session["NRP"] == null)
+            {
+                return RedirectToAction("Index", "Login");
+            }
+            else if (!menuLeftClass.isUserValidForm(iStrSessGPID, 18))
+            {
+                return RedirectToAction("Index", "Home");
+            }
+            var iTgl = DateTime.Now.ToString();
+            var iPeriode = DateTime.Now.ToString("yyyyMM");
+            
+            ViewData["sSessionNRP"] = Session["NRP"].ToString();
+            ViewData["sTgl"] = iTgl;
+            ViewData["sPeriode"] = iPeriode;
+            ViewBag.leftMenu = loadMenu();
+
+            return View();
+        }
+
+        private string loadMenu()
+        {
+            if (Session["leftMenu"] == null)
+            {
+                Session["leftMenu"] = menuLeftClass.recursiveMenu(0, Convert.ToInt32(iStrSessGPID));
+            }
+            return (string)Session["leftMenu"];
+        }
+
+        private void pv_CustLoadSession()
+        {
+            iStrSessNRP = (string)Session["NRP"];
+            iStrSessDistrik = (string)Session["distrik"];
+            iStrSessGPID = iStrSessGPID = Convert.ToString(Session["gpId"] == null ? "1000" : Session["gpId"]);
+        }
+
+        [HttpPost]
+        public JsonResult getIBSTemp(string sStrsessionIBS, int take, int skip, IEnumerable<Kendo.DynamicLinq.Sort> sort, Kendo.DynamicLinq.Filter filter)
+        {
+            try
+            {
+                db_CORED = new DtClass_CoredDataContext();
+                IQueryable<TBL_T_IBS_TEMP> tblIBSTEMP = db_CORED.TBL_T_IBS_TEMPs.Where(d => d.SESSION_UPLOAD.Equals(sStrsessionIBS));
+                return Json(tblIBSTEMP.ToDataSourceResult(take, skip, sort, filter));
+
+            }
+            catch (Exception e)
+            {
+                return this.Json(new { status = false, remarks = e.Message.ToString(), error = e.Message.ToString() }, JsonRequestBehavior.AllowGet);
+            }
+        }
+
+        [HttpPost]
+        public ActionResult saveUploadIBS(string sStrsessionIBS)
+        {
+            this.pv_CustLoadSession();
+            string sStrSnrp = Session["NRP"].ToString();
+
+            try
+            {
+                DtClass_CoredDataContext db_Context = new DtClass_CoredDataContext();
+
+                db_Context.cusp_saveUploadIBS(sStrsessionIBS, sStrSnrp);
+                iRemarks = "Save Success.";
+                return Json(new { status = true, remarks = iRemarks, error = iRemarks }, JsonRequestBehavior.AllowGet);
+            }
+            catch (Exception e)
+            {
+                return Json(new { error = e.ToString(), remarks = e.Message.ToString(), status = false });
+            }
+        }        
+
+        [HttpPost]
+        public async Task<JsonResult> UploadCSVIBS(string sTypeIBS)
+         {
+            pv_CustLoadSession();
+            DataTable dt = new DataTable();
+            var iStrRemark = string.Empty;
+            db_CORED = new DtClass_CoredDataContext();
+            this.pv_CustLoadSession();
+            string sStrsessionIBS = Guid.NewGuid().ToString();
+
+            try
+            {
+                foreach (string file in Request.Files)
+                {
+                    var fileContent = Request.Files[file];
+                    if (fileContent != null && fileContent.ContentLength > 0)
+                    {
+                        //var namaFiles = fileContent.FileName;
+                        var namaFile = Path.GetFileNameWithoutExtension(fileContent.FileName);
+                        char[] splitChars = new[] { '_' };
+                        var splitString = namaFile.Split(splitChars);
+                        var periode = splitString.LastOrDefault();
+                        //int fileExtPos = namaFiles.LastIndexOf(".");
+                        //int fileDelimiterPos = namaFile.LastIndexOf("_");
+                        //if (fileExtPos >= 6) { namaFile = namaFile.Substring(0, fileExtPos); }   
+                        //if (fileExtPos >= 0) { namaFile = namaFile.Substring(0, fileExtPos); }    
+
+                        var fileName = DateTime.Now.ToBinary().ToString() + Path.GetFileName(file);
+                        var path = Path.Combine(Server.MapPath("~/csv/cored/"), fileName);
+                        ////var path = Path.Combine(Server.MapPath("~/UploadFile"), fileName);
+                        ////var path = Path.Combine(ConfigurationManager.AppSettings["Upload_path"].ToString(), fileName);
+                        fileContent.SaveAs(path);
+                        dt = ProcessCSVIBS(path, sStrsessionIBS, iStrSessNRP, sTypeIBS);
+                        iStrRemark = ProcessBulkCopyIBS(dt);
+                        db_CORED.cusp_MoveToIBS(sStrsessionIBS, iStrSessDistrik);
+                        db_CORED.Dispose();
+                    }
+                }
+
+            }
+            catch (Exception e)
+            {
+                Response.StatusCode = (int)HttpStatusCode.BadRequest;
+                return this.Json(new { status = false, remarks = e.Message.ToString() }, JsonRequestBehavior.AllowGet);
+            }
+
+            iStrRemark = "Berhasil";
+            return this.Json(new { status = true, remarks = iStrRemark, iSessionIBS = sStrsessionIBS }, JsonRequestBehavior.AllowGet);           
+        }
+
+        private static DataTable ProcessCSVIBS(string fileName, string sSessUpload, string sNrp, string sType)
+        {
+            //Set up our variables
+            string Feedback = string.Empty;
+            string line = string.Empty;
+            string[] strArray;
+            List<string> strList;
+
+            DataTable dt = new DataTable();
+            DataRow row;
+            // work out where we should split on comma, but not in a sentence
+            Regex r = new Regex("[;](?=(?:[^\"]*\"[^\"]*\")*(?![^\"]*\"))");
+            //Set the filename in to our stream
+            StreamReader sr = new StreamReader(fileName);
+
+            //Read the first line and split the string at , with our regular expression in to an array
+            line = sr.ReadLine();
+            strList = r.Split(line).ToList();
+            //strList.Insert(0, "LINE");
+
+            strList.Insert(0, "SESSION_UPLOAD");
+            strList.Insert(0, "CREATED_DATE");
+            strList.Insert(0, "CREATED_BY");
+            strList.Insert(0, "PID_IBS");
+            //strList.Insert(0, "DSTRCT_CODE");
+            strList.Add("TYPE");
+
+            //strArray = r.Split(line);
+            strArray = strList.ToArray();
+
+            //For each item in the new split array, dynamically builds our Data columns. Save us having to worry about it.
+            Array.ForEach(strArray, s => dt.Columns.Add(new DataColumn()));
+
+            //Read each line in the CVS file until it’s empty
+            while ((line = sr.ReadLine()) != null)
+            {
+                row = dt.NewRow();
+
+                //add our current value to our data row
+                line = string.Format("{0};{1};{2};{3};{4};{5}", sSessUpload, DateTime.Now, sNrp, Guid.NewGuid().ToString(), line, sType);
+                row.ItemArray = r.Split(line);
+                dt.Rows.Add(row);
+            }
+
+            //Tidy Streameader up
+            sr.Dispose();
+
+            //return a the new DataTable
+            return dt;
+        }
+
+        private static String ProcessBulkCopyIBS(DataTable dt)
+        {
+            string Feedback = string.Empty;
+            string connString = ConfigurationManager.ConnectionStrings["DB_FAT_COREDConnectionString"].ConnectionString;
+
+            //make our connection and dispose at the end
+            using (SqlConnection conn = new SqlConnection(connString))
+            {
+                //make our command and dispose at the end
+                using (var copy = new SqlBulkCopy(conn))
+                {
+                    //Open our connection
+                    conn.Open();
+                    ///Set target table and tell the number of rows
+                    copy.DestinationTableName = "Cored.TBL_T_IBS_TEMP";
+                    copy.BatchSize = dt.Rows.Count;
+                    try
+                    {
+                        //Send it to the server
+                        copy.WriteToServer(dt);
+                        Feedback = "Upload complete";
+                    }
+                    catch (Exception ex)
+                    {
+                        Feedback = ex.Message;
+                    }
+                }
+            }
+            return Feedback;
+        }
+
+        [HttpPost]
+        public ActionResult EditIBS(TBL_T_IBS_TEMP s_tbl_UploadIBS_Temp)
+        {
+            this.pv_CustLoadSession();
+            string sNRP = Session["NRP"].ToString();
+            //s_tbl_UploadMB_Temp.CREATED_BY = iStrSessNRP;
+            try
+            {
+                P_CLS_IBS.UpdateDataUploadIBSTemp(s_tbl_UploadIBS_Temp, sNRP);
+                return Json(new { status = true, remarks = "Data berhasil di ubah", error = "Data gagal di ubah" }, JsonRequestBehavior.AllowGet);
+            }
+            catch (Exception ex)
+            {
+                return Json(new { remarks = ex.ToString() });
+            }
+
+            
+        }
+
+        
+
+
+    }
+}
+
+
+====================== MODEL ====================
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Web;
+
+namespace CORED.Models
+{
+    public class ClsUploadIBS
+    {
+        DtClass_CoredDataContext P_CTX_DB = new DtClass_CoredDataContext();
+
+        public void UpdateDataUploadIBSTemp(TBL_T_IBS_TEMP s_tbl_UploadIBS_Temp, string sNRP)
+        {
+            var i_tbl_UploadIBS_Temp = P_CTX_DB.TBL_T_IBS_TEMPs.Where(z => z.PID_IBS.Equals(s_tbl_UploadIBS_Temp.PID_IBS)).FirstOrDefault();
+            //i_tbl_UploadMB_Temp.SESSION_UPLOAD = s_tbl_UploadMB_Temp.SESSION_UPLOAD;
+            i_tbl_UploadIBS_Temp.CREATED_DATE = Convert.ToString(DateTime.Now);
+            i_tbl_UploadIBS_Temp.CREATED_BY = sNRP;
+            //i_tbl_UploadIBS_Temp.PID_MB = s_tbl_UploadIBS_Temp.PID_MB;
+            i_tbl_UploadIBS_Temp.DSTRCT_CODE = s_tbl_UploadIBS_Temp.DSTRCT_CODE;
+            i_tbl_UploadIBS_Temp.TAHUN = s_tbl_UploadIBS_Temp.TAHUN;
+            i_tbl_UploadIBS_Temp.JAN = s_tbl_UploadIBS_Temp.JAN;
+            i_tbl_UploadIBS_Temp.FEB = s_tbl_UploadIBS_Temp.FEB;
+            i_tbl_UploadIBS_Temp.MAR = s_tbl_UploadIBS_Temp.MAR;
+            i_tbl_UploadIBS_Temp.APR = s_tbl_UploadIBS_Temp.APR;
+            i_tbl_UploadIBS_Temp.MEI = s_tbl_UploadIBS_Temp.MEI;
+            i_tbl_UploadIBS_Temp.JUN = s_tbl_UploadIBS_Temp.JUN;
+            i_tbl_UploadIBS_Temp.JUL = s_tbl_UploadIBS_Temp.JUL;
+            i_tbl_UploadIBS_Temp.AUG = s_tbl_UploadIBS_Temp.AUG;
+            i_tbl_UploadIBS_Temp.SEP = s_tbl_UploadIBS_Temp.SEP;
+            i_tbl_UploadIBS_Temp.OCT = s_tbl_UploadIBS_Temp.OCT;
+            i_tbl_UploadIBS_Temp.NOV = s_tbl_UploadIBS_Temp.NOV;
+            i_tbl_UploadIBS_Temp.DEC = s_tbl_UploadIBS_Temp.DEC;
+            i_tbl_UploadIBS_Temp.TYPE = s_tbl_UploadIBS_Temp.TYPE;
+
+            int num;
+            string a, b, c, d, e, f, g, h, i, j, k, l, m;
+            //bool A = int.TryParse(i_tbl_UploadIBS_Temp.BEGINING_BALANCE, out num);
+            if (int.TryParse(i_tbl_UploadIBS_Temp.JAN, out num) == false)
+            {
+                a = "JAN HARUS NUMERIC, ";
+            }
+            else
+            {
+                a = "";
+            }
+            if (int.TryParse(i_tbl_UploadIBS_Temp.FEB, out num) == false)
+            {
+                b = "FEB HARUS NUMERIC, ";
+            }
+            else
+            {
+                b = "";
+            }
+            if (int.TryParse(i_tbl_UploadIBS_Temp.MAR, out num) == false)
+            {
+                c = "MAR HARUS NUMERIC, ";
+            }
+            else
+            {
+                c = "";
+            }
+            if (int.TryParse(i_tbl_UploadIBS_Temp.APR, out num) == false)
+            {
+                d = "APR HARUS NUMERIC, ";
+            }
+            else
+            {
+                d = "";
+            }
+            if (int.TryParse(i_tbl_UploadIBS_Temp.MEI, out num) == false)
+            {
+                e = "MEI HARUS NUMERIC, ";
+            }
+            else
+            {
+                e = "";
+            }
+            if (int.TryParse(i_tbl_UploadIBS_Temp.JUN, out num) == false)
+            {
+                f = "JUN HARUS NUMERIC, ";
+            }
+            else
+            {
+                f = "";
+            }
+            if (int.TryParse(i_tbl_UploadIBS_Temp.JUL, out num) == false)
+            {
+                g = "JUL HARUS NUMERIC, ";
+            }
+            else
+            {
+                g = "";
+            }
+            if (int.TryParse(i_tbl_UploadIBS_Temp.AUG, out num) == false)
+            {
+                h = "AUG HARUS NUMERIC, ";
+            }
+            else
+            {
+                h = "";
+            }
+            if (int.TryParse(i_tbl_UploadIBS_Temp.SEP, out num) == false)
+            {
+                i = "SEP HARUS NUMERIC, ";
+            }
+            else
+            {
+                i = "";
+            }
+            if (int.TryParse(i_tbl_UploadIBS_Temp.OCT, out num) == false)
+            {
+                j = "OCT HARUS NUMERIC, ";
+            }
+            else
+            {
+                j = "";
+            }
+            if (int.TryParse(i_tbl_UploadIBS_Temp.NOV, out num) == false)
+            {
+                k = "NOV HARUS NUMERIC, ";
+            }
+            else
+            {
+                k = "";
+            }
+            if (int.TryParse(i_tbl_UploadIBS_Temp.DEC, out num) == false)
+            {
+                l = "DEC HARUS NUMERIC, ";
+            }
+            else
+            {
+                l = "";
+            }
+            VW_DWH_DISTRIK_ALL i_DSTRCT_CODE = P_CTX_DB.VW_DWH_DISTRIK_ALLs.Where(y => y.DSTRCT_CODE == i_tbl_UploadIBS_Temp.DSTRCT_CODE).FirstOrDefault();
+
+            if (i_DSTRCT_CODE == null)
+            {
+                m = "DSTRCT_CODE TIDAK TERDAFTAR, ";
+            }
+            else
+            {
+                m = "";
+            }
+
+            i_tbl_UploadIBS_Temp.REMARKS = m + a + b + c + d + e + f + g + h + i + j + k + l;
+
+            P_CTX_DB.SubmitChanges();
+        }
+
+
+    }
+}

@@ -1,0 +1,17 @@
+ onDataBound: function (e) {
+            var length_STATUS = 0;
+            var gridData = this.ds_grid_PM.view();
+            var dslength = gridData.length;
+            for (var i = 0; i < gridData.length; i++) {
+                if (gridData[i].STATUS == "Close") {
+                    length_STATUS++;
+                }
+            }
+            if (dslength == 0 || dslength==null) {
+                jmlSTATUS = 0;
+            }
+            else {
+                jmlSTATUS = length_STATUS / dslength;
+            }
+            $("#txt_status").val(kendo.toString(jmlSTATUS, "p2"));
+        },
